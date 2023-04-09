@@ -58,8 +58,16 @@ struct ProgramState {
     bool ImGuiEnabled = false;
     Camera camera;
     bool CameraMouseMovementUpdateEnabled = true;
+
     glm::vec3 plantPosition = glm::vec3(0.0f);
     float plantScale = 0.1f;
+
+    glm::vec3 concretePosition = glm::vec3(-6.0f, 14.25f, -5.0f);
+    float concreteScale = 1.5f;
+    float concreteRotationX = -90.0f;
+    float concreteRotationY = 8.0f;
+    float concreteRotationZ = 0.0f;
+
     PointLight pointLight;
     ProgramState()
             : camera(glm::vec3(0.0f, 0.0f, 3.0f)) {}
@@ -170,6 +178,9 @@ int main() {
     // -----------
     Model ourModel("resources/objects/plant/potted_plant_obj.obj");
     ourModel.SetShaderTextureNamePrefix("material.");
+
+    Model concrete("resources/objects/concrete/floor_4x4_free.obj");
+    concrete.SetShaderTextureNamePrefix("material.");
 
     PointLight& pointLight = programState->pointLight;
     pointLight.position = glm::vec3(4.0f, 4.0, 0.0);
@@ -293,13 +304,23 @@ int main() {
         ourShader.setMat4("projection", projection);
         ourShader.setMat4("view", view);
 
-        // render the loaded model
+        // render the plant model
         glm::mat4 model = glm::mat4(1.0f);
         model = glm::translate(model,
                                programState->plantPosition); // translate it down so it's at the center of the scene
         model = glm::scale(model, glm::vec3(programState->plantScale));    // it's a bit too big for our scene, so scale it down
         ourShader.setMat4("model", model);
         ourModel.Draw(ourShader);
+
+        // render the concrete model
+        model = glm::mat4(1.0f);
+        model = glm::translate(model,programState->concretePosition); // translate it down so it's at the center of the scene
+        model = glm::rotate(model,glm::radians(programState->concreteRotationX),glm::vec3(1.0f,0.0f,0.0f));
+        model = glm::rotate(model,glm::radians(programState->concreteRotationY),glm::vec3(0.0f,1.0f,0.0f));
+        model = glm::rotate(model,glm::radians(programState->concreteRotationZ),glm::vec3(0.0f,0.0f,1.0f));
+        model = glm::scale(model, glm::vec3(programState->concreteScale));    // it's a bit too big for our scene, so scale it down
+        ourShader.setMat4("model", model);
+        concrete.Draw(ourShader);
 
         // draw skybox as last
         glDepthMask(GL_FALSE);
@@ -406,6 +427,9 @@ void DrawImGui(ProgramState *programState) {
         ImGui::ColorEdit3("Background color", (float *) &programState->clearColor);
         ImGui::DragFloat3("Plant position", (float*)&programState->plantPosition);
         ImGui::DragFloat("Plant scale", &programState->plantScale, 0.05, 0.1, 4.0);
+        ImGui::DragFloat3("Concrete position", (float*)&programState->concretePosition);
+        ImGui::DragFloat("Concrete scale", &programState->concreteScale, 0.05, 0.1, 4.0);
+        ImGui::DragFloat("Concrete rotation", &programState->concreteRotationZ, 0.05, -180.0, 180.0);
 
         ImGui::DragFloat("pointLight.constant", &programState->pointLight.constant, 0.05, 0.0, 1.0);
         ImGui::DragFloat("pointLight.linear", &programState->pointLight.linear, 0.05, 0.0, 1.0);
