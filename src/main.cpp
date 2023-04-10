@@ -29,8 +29,8 @@ void key_callback(GLFWwindow *window, int key, int scancode, int action, int mod
 unsigned int loadCubemap(vector<std::string> faces);
 
 // settings
-const unsigned int SCR_WIDTH = 800;
-const unsigned int SCR_HEIGHT = 600;
+const unsigned int SCR_WIDTH = 960;
+const unsigned int SCR_HEIGHT = 540;
 
 // camera
 
