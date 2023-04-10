@@ -62,8 +62,8 @@ struct ProgramState {
     glm::vec3 plantPosition = glm::vec3(0.0f);
     float plantScale = 0.1f;
 
-    glm::vec3 concretePosition = glm::vec3(-6.0f, 14.25f, -5.0f);
-    float concreteScale = 1.5f;
+    glm::vec3 concretePosition = glm::vec3(-8.5f, 19.0f, -6.0f);
+    float concreteScale = 2.0f;
     float concreteRotationX = -90.0f;
     float concreteRotationY = 8.0f;
     float concreteRotationZ = 0.0f;
