@@ -118,6 +118,7 @@ int main() {
     glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 3);
     glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 3);
     glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
+    glfwWindowHint(GLFW_SAMPLES, 4);
 
 #ifdef __APPLE__
     glfwWindowHint(GLFW_OPENGL_FORWARD_COMPAT, GL_TRUE);
@@ -168,6 +169,9 @@ int main() {
     // configure global opengl state
     // -----------------------------
     glEnable(GL_DEPTH_TEST);
+
+    // turn on anti aliasing
+    glEnable(GL_MULTISAMPLE);
 
     // build and compile shaders
     // -------------------------
@@ -457,6 +461,13 @@ void key_callback(GLFWwindow *window, int key, int scancode, int action, int mod
         } else {
             glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_DISABLED);
         }
+    }
+
+    if(key == GLFW_KEY_F1 && action == GLFW_PRESS){
+        glEnable(GL_MULTISAMPLE);
+    }
+    if(key == GLFW_KEY_F2 && action == GLFW_PRESS){
+        glDisable(GL_MULTISAMPLE);
     }
 }
 
