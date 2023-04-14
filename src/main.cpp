@@ -37,6 +37,7 @@ const unsigned int SCR_HEIGHT = 540;
 float lastX = SCR_WIDTH / 2.0f;
 float lastY = SCR_HEIGHT / 2.0f;
 bool firstMouse = true;
+bool msaa = true;
 
 // timing
 float deltaTime = 0.0f;
@@ -289,7 +290,11 @@ int main() {
         // input
         // -----
         processInput(window);
-
+        if(msaa){
+            glEnable(GL_MULTISAMPLE);
+        } else {
+            glDisable(GL_MULTISAMPLE);
+        }
 
         // render
         // ------
@@ -478,11 +483,8 @@ void key_callback(GLFWwindow *window, int key, int scancode, int action, int mod
         }
     }
 
-    if(key == GLFW_KEY_F1 && action == GLFW_PRESS){
-        glEnable(GL_MULTISAMPLE);
-    }
-    if(key == GLFW_KEY_F2 && action == GLFW_PRESS){
-        glDisable(GL_MULTISAMPLE);
+    if(key == GLFW_KEY_M && action == GLFW_PRESS){
+        msaa = !msaa;
     }
 }
 
