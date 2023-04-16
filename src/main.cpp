@@ -26,6 +26,8 @@ void processInput(GLFWwindow *window);
 
 void key_callback(GLFWwindow *window, int key, int scancode, int action, int mods);
 
+unsigned int loadTexture(const char *path);
+
 unsigned int loadCubemap(vector<std::string> faces);
 
 // settings
@@ -181,6 +183,7 @@ int main() {
     // build and compile shaders
     // -------------------------
     Shader ourShader("resources/shaders/2.model_lighting.vs", "resources/shaders/2.model_lighting.fs");
+    Shader blendingShader("resources/shaders/3.1.blending.vs", "resources/shaders/3.1.blending.fs");
     Shader skyboxShader("resources/shaders/skybox.vs","resources/shaders/skybox.fs");
 
     // load models
@@ -204,7 +207,43 @@ int main() {
     pointLight.linear = 0.09f;
     pointLight.quadratic = 0.032f;
 
+    float transparentVertices[] = {
+            // positions         // texture Coords (swapped y coordinates because texture is flipped upside down)
+            0.0f,  0.5f,  0.0f,  0.0f,  0.0f,
+            0.0f, -0.5f,  0.0f,  0.0f,  1.0f,
+            1.0f, -0.5f,  0.0f,  1.0f,  1.0f,
 
+            0.0f,  0.5f,  0.0f,  0.0f,  0.0f,
+            1.0f, -0.5f,  0.0f,  1.0f,  1.0f,
+            1.0f,  0.5f,  0.0f,  1.0f,  0.0f
+    };
+
+    // transparent VAO
+    unsigned int transparentVAO, transparentVBO;
+    glGenVertexArrays(1, &transparentVAO);
+    glGenBuffers(1, &transparentVBO);
+    glBindVertexArray(transparentVAO);
+    glBindBuffer(GL_ARRAY_BUFFER, transparentVBO);
+    glBufferData(GL_ARRAY_BUFFER, sizeof(transparentVertices), transparentVertices, GL_STATIC_DRAW);
+    glEnableVertexAttribArray(0);
+    glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 5 * sizeof(float), (void*)0);
+    glEnableVertexAttribArray(1);
+    glVertexAttribPointer(1, 2, GL_FLOAT, GL_FALSE, 5 * sizeof(float), (void*)(3 * sizeof(float)));
+    glBindVertexArray(0);
+
+    unsigned int transparentTexture = loadTexture(FileSystem::getPath("resources/textures/grass.png").c_str());
+
+    vector<glm::vec3> vegetation
+    {
+        glm::vec3(-1.5f, 0.625f, -0.48f),
+        glm::vec3( 1.5f, 0.625f, 0.51f),
+        glm::vec3( 0.0f, 0.625f, 0.7f),
+        glm::vec3(-0.3f, 0.625f, -2.3f),
+        glm::vec3 (0.5f, 0.625f, -0.6f)
+    };
+
+    blendingShader.use();
+    blendingShader.setInt("texture1", 0);
 
     // draw in wireframe
     //glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
@@ -343,6 +382,19 @@ int main() {
         model = glm::scale(model, glm::vec3(programState->benchScale));    // it's a bit too big for our scene, so scale it down
         ourShader.setMat4("model", model);
         bench.Draw(ourShader);
+
+        blendingShader.use();
+        blendingShader.setMat4("projection", projection);
+        blendingShader.setMat4("view", view);
+        glBindVertexArray(transparentVAO);
+        glBindTexture(GL_TEXTURE_2D, transparentTexture);
+        for (unsigned int i = 0; i < vegetation.size(); i++)
+        {
+            model = glm::mat4(1.0f);
+            model = glm::translate(model, vegetation[i]);
+            blendingShader.setMat4("model", model);
+            glDrawArrays(GL_TRIANGLES, 0, 6);
+        }
 
         // draw skybox as last
         glDepthMask(GL_FALSE);
@@ -486,6 +538,43 @@ void key_callback(GLFWwindow *window, int key, int scancode, int action, int mod
     if(key == GLFW_KEY_M && action == GLFW_PRESS){
         msaa = !msaa;
     }
+}
+
+unsigned int loadTexture(char const * path)
+{
+    unsigned int textureID;
+    glGenTextures(1, &textureID);
+
+    int width, height, nrComponents;
+    unsigned char *data = stbi_load(path, &width, &height, &nrComponents, 0);
+    if (data)
+    {
+        GLenum format;
+        if (nrComponents == 1)
+            format = GL_RED;
+        else if (nrComponents == 3)
+            format = GL_RGB;
+        else if (nrComponents == 4)
+            format = GL_RGBA;
+
+        glBindTexture(GL_TEXTURE_2D, textureID);
+        glTexImage2D(GL_TEXTURE_2D, 0, format, width, height, 0, format, GL_UNSIGNED_BYTE, data);
+        glGenerateMipmap(GL_TEXTURE_2D);
+
+        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, format == GL_RGBA ? GL_CLAMP_TO_EDGE : GL_REPEAT); // for this tutorial: use GL_CLAMP_TO_EDGE to prevent semi-transparent borders. Due to interpolation it takes texels from next repeat
+        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, format == GL_RGBA ? GL_CLAMP_TO_EDGE : GL_REPEAT);
+        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_LINEAR);
+        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+
+        stbi_image_free(data);
+    }
+    else
+    {
+        std::cout << "Texture failed to load at path: " << path << std::endl;
+        stbi_image_free(data);
+    }
+
+    return textureID;
 }
 
 unsigned int loadCubemap(vector<std::string> faces)
