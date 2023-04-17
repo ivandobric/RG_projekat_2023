@@ -62,8 +62,11 @@ struct ProgramState {
     Camera camera;
     bool CameraMouseMovementUpdateEnabled = true;
 
-    glm::vec3 plantPosition = glm::vec3(0.0f,0.2f,0.0f);
+    glm::vec3 plantPosition = glm::vec3(1.0f,0.2f,1.0f);
     float plantScale = 0.1f;
+    float plantRotationX = 0.0f;
+    float plantRotationY = -90.0f;
+    float plantRotationZ = 0.0f;
 
     glm::vec3 concretePosition = glm::vec3(-8.5f, 19.0f, -6.0f);
     float concreteScale = 2.0f;
@@ -71,8 +74,11 @@ struct ProgramState {
     float concreteRotationY = 8.0f;
     float concreteRotationZ = 0.0f;
 
-    glm::vec3 benchPosition = glm::vec3(-3.0f,0.34f,-5.0f);
+    glm::vec3 benchPosition = glm::vec3(1.0f,0.34f,-5.0f);
     float benchScale = 1.0f;
+    float benchRotationX = 0.0f;
+    float benchRotationY = 3.0f;
+    float benchRotationZ = 0.0f;
 
 
     PointLight pointLight;
@@ -362,9 +368,11 @@ int main() {
         
         // render the plant model
         glm::mat4 model = glm::mat4(1.0f);
-        model = glm::translate(model,
-                               programState->plantPosition); // translate it down so it's at the center of the scene
-        model = glm::scale(model, glm::vec3(programState->plantScale));    // it's a bit too big for our scene, so scale it down
+        model = glm::translate(model,programState->plantPosition);
+        model = glm::rotate(model,glm::radians(programState->plantRotationX),glm::vec3(1.0f,0.0f,0.0f));
+        model = glm::rotate(model,glm::radians(programState->plantRotationY),glm::vec3(0.0f,1.0f,0.0f));
+        model = glm::rotate(model,glm::radians(programState->plantRotationZ),glm::vec3(0.0f,0.0f,1.0f));
+        model = glm::scale(model, glm::vec3(programState->plantScale));
         ourShader.setMat4("model", model);
         ourModel.Draw(ourShader);
 
@@ -373,18 +381,21 @@ int main() {
 
         // render the concrete model
         model = glm::mat4(1.0f);
-        model = glm::translate(model,programState->concretePosition); // translate it down so it's at the center of the scene
+        model = glm::translate(model,programState->concretePosition);
         model = glm::rotate(model,glm::radians(programState->concreteRotationX),glm::vec3(1.0f,0.0f,0.0f));
         model = glm::rotate(model,glm::radians(programState->concreteRotationY),glm::vec3(0.0f,1.0f,0.0f));
         model = glm::rotate(model,glm::radians(programState->concreteRotationZ),glm::vec3(0.0f,0.0f,1.0f));
-        model = glm::scale(model, glm::vec3(programState->concreteScale));    // it's a bit too big for our scene, so scale it down
+        model = glm::scale(model, glm::vec3(programState->concreteScale));
         ourShader.setMat4("model", model);
         concrete.Draw(ourShader);
 
         //render the bench model
         model = glm::mat4(1.0f);
-        model = glm::translate(model,programState->benchPosition); // translate it down so it's at the center of the scene
-        model = glm::scale(model, glm::vec3(programState->benchScale));    // it's a bit too big for our scene, so scale it down
+        model = glm::translate(model,programState->benchPosition);
+        model = glm::rotate(model,glm::radians(programState->benchRotationX),glm::vec3(1.0f,0.0f,0.0f));
+        model = glm::rotate(model,glm::radians(programState->benchRotationY),glm::vec3(0.0f,1.0f,0.0f));
+        model = glm::rotate(model,glm::radians(programState->benchRotationZ),glm::vec3(0.0f,0.0f,1.0f));
+        model = glm::scale(model, glm::vec3(programState->benchScale));
         ourShader.setMat4("model", model);
         bench.Draw(ourShader);
 
@@ -503,13 +514,24 @@ void DrawImGui(ProgramState *programState) {
     {
         ImGui::Begin("Scene info");
         ImGui::ColorEdit3("Background color", (float *) &programState->clearColor);
+
         ImGui::DragFloat3("Plant position", (float*)&programState->plantPosition);
         ImGui::DragFloat("Plant scale", &programState->plantScale, 0.05, 0.1, 4.0);
+        ImGui::DragFloat("Plant rotation X", &programState->plantRotationX, 0.05, -180.0, 180.0);
+        ImGui::DragFloat("Plant rotation Y", &programState->plantRotationY, 0.05, -180.0, 180.0);
+        ImGui::DragFloat("Plant rotation Z", &programState->plantRotationZ, 0.05, -180.0, 180.0);
+
         ImGui::DragFloat3("Concrete position", (float*)&programState->concretePosition);
         ImGui::DragFloat("Concrete scale", &programState->concreteScale, 0.05, 0.1, 4.0);
-        ImGui::DragFloat("Concrete rotation", &programState->concreteRotationX, 0.05, -180.0, 180.0);
+        ImGui::DragFloat("Concrete rotation X", &programState->concreteRotationX, 0.05, -180.0, 180.0);
+        ImGui::DragFloat("Concrete rotation Y", &programState->concreteRotationY, 0.05, -180.0, 180.0);
+        ImGui::DragFloat("Concrete rotation Z", &programState->concreteRotationZ, 0.05, -180.0, 180.0);
+
         ImGui::DragFloat3("Bench position", (float*)&programState->benchPosition);
         ImGui::DragFloat("Bench scale", &programState->benchScale, 0.05, 0.1, 4.0);
+        ImGui::DragFloat("Bench rotation X", &programState->benchRotationX, 0.05, -180.0, 180.0);
+        ImGui::DragFloat("Bench rotation Y", &programState->benchRotationY, 0.05, -180.0, 180.0);
+        ImGui::DragFloat("Bench rotation Z", &programState->benchRotationZ, 0.05, -180.0, 180.0);
 
         ImGui::DragFloat("pointLight.constant", &programState->pointLight.constant, 0.05, 0.0, 1.0);
         ImGui::DragFloat("pointLight.linear", &programState->pointLight.linear, 0.05, 0.0, 1.0);
