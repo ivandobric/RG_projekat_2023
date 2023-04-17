@@ -80,6 +80,11 @@ struct ProgramState {
     float benchRotationY = 3.0f;
     float benchRotationZ = 0.0f;
 
+    glm::vec3 lamppostPosition = glm::vec3(0.0f,5.0f,-10.0f);
+    float lamppostScale = 5.0f;
+    float lamppostRotationX = 0.0f;
+    float lamppostRotationY = 0.0f;
+    float lamppostRotationZ = 0.0f;
 
     PointLight pointLight;
     ProgramState()
@@ -202,6 +207,9 @@ int main() {
 
     Model bench("resources/objects/bench/Bench.obj");
     bench.SetShaderTextureNamePrefix("material.");
+
+    Model lamppost("resources/objects/lamppost/scene.gltf");
+    lamppost.SetShaderTextureNamePrefix("material.");
 
     PointLight& pointLight = programState->pointLight;
     pointLight.position = glm::vec3(4.0f, 4.0, 0.0);
@@ -399,6 +407,15 @@ int main() {
         ourShader.setMat4("model", model);
         bench.Draw(ourShader);
 
+        model = glm::mat4(1.0f);
+        model = glm::translate(model,programState->lamppostPosition);
+        model = glm::rotate(model,glm::radians(programState->lamppostRotationX),glm::vec3(1.0f,0.0f,0.0f));
+        model = glm::rotate(model,glm::radians(programState->lamppostRotationY),glm::vec3(0.0f,1.0f,0.0f));
+        model = glm::rotate(model,glm::radians(programState->lamppostRotationZ),glm::vec3(0.0f,0.0f,1.0f));
+        model = glm::scale(model, glm::vec3(programState->lamppostScale));
+        ourShader.setMat4("model", model);
+        lamppost.Draw(ourShader);
+
         glDisable(GL_CULL_FACE);
 
         blendingShader.use();
@@ -532,6 +549,12 @@ void DrawImGui(ProgramState *programState) {
         ImGui::DragFloat("Bench rotation X", &programState->benchRotationX, 0.05, -180.0, 180.0);
         ImGui::DragFloat("Bench rotation Y", &programState->benchRotationY, 0.05, -180.0, 180.0);
         ImGui::DragFloat("Bench rotation Z", &programState->benchRotationZ, 0.05, -180.0, 180.0);
+
+        ImGui::DragFloat3("Lamppost position", (float*)&programState->lamppostPosition);
+        ImGui::DragFloat("Lamppost scale", &programState->lamppostScale, 0.05, 0.1, 5.0);
+        ImGui::DragFloat("Lamppost rotation X", &programState->lamppostRotationX, 0.05, -180.0, 180.0);
+        ImGui::DragFloat("Lamppost rotation Y", &programState->lamppostRotationY, 0.05, -180.0, 180.0);
+        ImGui::DragFloat("Lamppost rotation Z", &programState->lamppostRotationZ, 0.05, -180.0, 180.0);
 
         ImGui::DragFloat("pointLight.constant", &programState->pointLight.constant, 0.05, 0.0, 1.0);
         ImGui::DragFloat("pointLight.linear", &programState->pointLight.linear, 0.05, 0.0, 1.0);
