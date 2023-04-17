@@ -359,9 +359,7 @@ int main() {
         glm::mat4 view = programState->camera.GetViewMatrix();
         ourShader.setMat4("projection", projection);
         ourShader.setMat4("view", view);
-
-        glEnable(GL_CULL_FACE);
-        glCullFace(GL_BACK);
+        
         // render the plant model
         glm::mat4 model = glm::mat4(1.0f);
         model = glm::translate(model,
@@ -369,6 +367,9 @@ int main() {
         model = glm::scale(model, glm::vec3(programState->plantScale));    // it's a bit too big for our scene, so scale it down
         ourShader.setMat4("model", model);
         ourModel.Draw(ourShader);
+
+        glEnable(GL_CULL_FACE);
+        glCullFace(GL_BACK);
 
         // render the concrete model
         model = glm::mat4(1.0f);
@@ -380,6 +381,7 @@ int main() {
         ourShader.setMat4("model", model);
         concrete.Draw(ourShader);
 
+        //render the bench model
         model = glm::mat4(1.0f);
         model = glm::translate(model,programState->benchPosition); // translate it down so it's at the center of the scene
         model = glm::scale(model, glm::vec3(programState->benchScale));    // it's a bit too big for our scene, so scale it down
